@@ -26,9 +26,6 @@
           ((not (f x)) #f)
           (else (loop (+ x 1))))))
 
-(check-true (∀≦ 3 (λ (x) (< x 4))))
-(check-false (∀≦ 3 (λ (x) (< x 3))))
-
 (define-equipment ∀ ∀≦)
 
 (check-true (∀ x ≦ 3 (< x 4)))
@@ -40,9 +37,6 @@
           ((f x) #t)
           (else (loop (+ x 1))))))
 
-(check-true (∃≦ 3 (λ (x) (= x 2))))
-(check-false (∃≦ 3 (λ (x) (= x 4))))
-
 (define-equipment ∃ ∃≦)
 
 (check-true (∃ x ≦ 3 (= x 2)))
@@ -53,9 +47,6 @@
     (cond ((> x max) 0)
           ((f x) x)
           (else (loop (+ x 1))))))
-
-(check-eq? (Min≦ 3 (λ (x) (= x 2))) 2)
-(check-eq? (Min≦ 3 (λ (x) (= x 4))) 0)
 
 (define-equipment Min Min≦)
 
