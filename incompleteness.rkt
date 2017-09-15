@@ -38,3 +38,13 @@
 (check-false (∃ x ≦ 3 (= x 4)))
 (check-eq? (Min x ≦ 3 (= x 2)) 2)
 (check-eq? (Min x ≦ 3 (= x 4)) 0)
+
+; 定数
+
+(define c0 1)
+(define cf 3)
+(define cnot 5)
+(define cor 7)
+(define call 9)
+(define clp 11)
+(define crp 13)
