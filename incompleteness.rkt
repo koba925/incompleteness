@@ -48,3 +48,66 @@
 (define call 9)
 (define clp 11)
 (define crp 13)
+
+; 定義1
+
+(define (CanDevide x d)
+  (∃ n ≦ x (= x (* d n))))
+
+(check-true (CanDevide 12 3))
+(check-false (CanDevide 12 5))
+
+; 定義2
+(define (IsPrime x)
+  (and (> x 1)
+       (not (∃ d ≦ x (and (not (= d 1))
+                          (not (= d x))
+                          (CanDevide x d))))))
+
+(check-false (IsPrime 0))
+(check-false (IsPrime 1))
+(check-true (IsPrime 2))
+(check-false (IsPrime 12))
+(check-true (IsPrime 17))
+
+; 定義3
+
+(define (CanDevideByPrime x p)
+  (and (CanDevide x p) (IsPrime p)))
+
+(check-true (CanDevideByPrime 12 3))
+(check-false (CanDevideByPrime 12 5))
+(check-false (CanDevideByPrime 12 6))
+
+(define (prime n x)
+  (cond ((= n 0) 0)
+        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
+                              (CanDevideByPrime x p))))))
+
+(check-eq? (prime 0 2352) 0)
+(check-eq? (prime 1 2352) 2)
+(check-eq? (prime 2 2352) 3)
+(check-eq? (prime 3 2352) 7)
+
+; 定義4
+
+(define (factorial n)
+  (cond ((= n 0) 1)
+        (else (* n (factorial (- n 1))))))
+
+(check-eq? (factorial 0) 1)
+(check-eq? (factorial 3) 6)
+
+; 定義5
+
+(define (M5 n)
+  (+ (factorial n) 1))
+
+(define (P n)
+  (cond ((= n 0) 0)
+        (else (Min p ≦ (M5 n) (and (< (P (- n 1)) p)
+                                   (IsPrime p))))))
+
+(check-eq? (P 0) 0)
+(check-eq? (P 1) 2)
+(check-eq? (P 5) 11)
