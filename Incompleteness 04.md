@@ -1,4 +1,4 @@
-# ゲーデルの不完全性定理の証明のアレをRacketで書いてみる (3)
+# ゲーデルの不完全性定理の証明のアレをRacketで書いてみる (4)
 
 ## 「10.8.2 整数論」の続き
 
@@ -94,6 +94,7 @@ cpu time: 92482 real time: 92457 gc time: 3484
 
 ```
 (define primes (make-hash))
+; 0番目の素数は0という定義
 (hash-set! primes 0 0)
 (hash-set! primes 1 2)
 
@@ -115,9 +116,12 @@ cpu time: 0 real time: 0 gc time: 0
 > (time (P 100))
 cpu time: 1 real time: 0 gc time: 0
 541
-> (time (P 100))
-cpu time: 1 real time: 0 gc time: 0
-541
+> (time (P 1000))
+cpu time: 11 real time: 11 gc time: 0
+7919
+> (time (P 10000))
+cpu time: 261 real time: 261 gc time: 0
+104729
 ```
 
 よしこれくらいなら先へ進んでももうしばらくは動かせるかな
@@ -125,5 +129,5 @@ cpu time: 1 real time: 0 gc time: 0
 このへんってただたまたま論理式の表現方法に素数指数表現を選んだから
 こうなってるってだけで別に不完全性とは関係ないとこなんですよねえ
 あ、モジュールに分けたほうがキレイかも？
-まああとにしよう
-どれをexportしなきゃいけないかもよくわかってないし
+
+コード的には中途半端な気もするけどこれくらいで先に進もう
