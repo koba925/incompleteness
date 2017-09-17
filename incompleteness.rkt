@@ -52,14 +52,14 @@
 ; 定義1
 
 ; もとの定義
-;(define (CanDevide x d)
+;(define (CanDivide x d)
 ;  (∃ n ≦ x (= x (* d n))))
 
-(define (CanDevide x d)
+(define (CanDivide x d)
   (= (remainder x d) 0))
 
-(check-true (CanDevide 12 3))
-(check-false (CanDevide 12 5))
+(check-true (CanDivide 12 3))
+(check-false (CanDivide 12 5))
 
 ; 定義2
 
@@ -68,13 +68,13 @@
 ;  (and (> x 1)
 ;       (not (∃ d ≦ x (and (not (= d 1))
 ;                          (not (= d x))
-;                          (CanDevide x d))))))
+;                          (CanDivide x d))))))
 
 (define (IsPrime x)
   (and (> x 1)
        (let loop ((d 2))
          (cond ((> (* d d) x) #t)
-               ((CanDevide x d) #f)
+               ((CanDivide x d) #f)
                (else (loop (+ d 1)))))))
 
 (check-false (IsPrime 0))
@@ -85,17 +85,17 @@
 
 ; 定義3
 
-(define (CanDevideByPrime x p)
-  (and (CanDevide x p) (IsPrime p)))
+(define (CanDivideByPrime x p)
+  (and (CanDivide x p) (IsPrime p)))
 
-(check-true (CanDevideByPrime 12 3))
-(check-false (CanDevideByPrime 12 5))
-(check-false (CanDevideByPrime 12 6))
+(check-true (CanDivideByPrime 12 3))
+(check-false (CanDivideByPrime 12 5))
+(check-false (CanDivideByPrime 12 6))
 
 (define (prime n x)
   (cond ((= n 0) 0)
         (else (Min p ≦ x (and (< (prime (- n 1) x) p)
-                              (CanDevideByPrime x p))))))
+                              (CanDivideByPrime x p))))))
 
 (check-eq? (prime 0 2352) 0)
 (check-eq? (prime 1 2352) 2)
@@ -137,3 +137,26 @@
 (check-eq? (P 0) 0)
 (check-eq? (P 1) 2)
 (check-eq? (P 5) 11)
+
+; 定義6 n番目の要素
+
+(define (CanDivideByPower x n k)
+  (CanDivide x (expt (prime n x) k)))
+
+(define (elm x n)
+  (Min k ≦ x (and (CanDivideByPower x n k)
+                  (not (CanDivideByPower x n (+ k 1))))))
+
+; 2^3*3^2*5^1=360
+(check-true (CanDivideByPower 360 3 1))
+(check-false (CanDivideByPower 360 3 2))
+
+; (P n)ではなく(prime n x)を使っているので、歯抜けでも問題はないはず
+; 2^3*3^2*7^1=504
+(check-true (CanDivideByPower 504 3 1))
+(check-false (CanDivideByPower 504 3 2))
+
+(check-equal? (elm 360 1) 3)
+(check-equal? (elm 360 2) 2)
+(check-equal? (elm 360 3) 1)
+(check-equal? (elm 504 3) 1)
