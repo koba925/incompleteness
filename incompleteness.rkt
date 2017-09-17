@@ -51,18 +51,31 @@
 
 ; 定義1
 
+; もとの定義
+;(define (CanDevide x d)
+;  (∃ n ≦ x (= x (* d n))))
+
 (define (CanDevide x d)
-  (∃ n ≦ x (= x (* d n))))
+  (= (remainder x d) 0))
 
 (check-true (CanDevide 12 3))
 (check-false (CanDevide 12 5))
 
 ; 定義2
+
+; もとの定義
+;(define (IsPrime x)
+;  (and (> x 1)
+;       (not (∃ d ≦ x (and (not (= d 1))
+;                          (not (= d x))
+;                          (CanDevide x d))))))
+
 (define (IsPrime x)
   (and (> x 1)
-       (not (∃ d ≦ x (and (not (= d 1))
-                          (not (= d x))
-                          (CanDevide x d))))))
+       (let loop ((d 2))
+         (cond ((> (* d d) x) #t)
+               ((CanDevide x d) #f)
+               (else (loop (+ d 1)))))))
 
 (check-false (IsPrime 0))
 (check-false (IsPrime 1))
@@ -100,13 +113,26 @@
 
 ; 定義5
 
-(define (M5 n)
-  (+ (factorial n) 1))
+; 元のソース
+;(define (M5 n)
+;  (+ (factorial n) 1))
+;
+;(define (P n)
+;  (cond ((= n 0) 0)
+;        (else (Min p ≦ (M5 n) (and (< (P (- n 1)) p)
+;                                   (IsPrime p))))))
+
+(define primes (make-hash))
+(hash-set! primes 0 0)
+(hash-set! primes 1 2)
 
 (define (P n)
-  (cond ((= n 0) 0)
-        (else (Min p ≦ (M5 n) (and (< (P (- n 1)) p)
-                                   (IsPrime p))))))
+  (cond ((hash-ref primes n #f))
+        (else (let loop ((k (+ (P (- n 1)) 1)))
+                (cond ((IsPrime k)
+                       (hash-set! primes n k)
+                       k)
+                      (else (loop (+ k 1))))))))
 
 (check-eq? (P 0) 0)
 (check-eq? (P 1) 2)
