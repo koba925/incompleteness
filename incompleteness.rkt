@@ -49,6 +49,18 @@
 (define clp 11)
 (define crp 13)
 
+; ⇒の定義
+; これは関数だと余分な評価が走るのでマクロで
+; (if x y #t) とどっちがわかりやすいかな
+
+(define-syntax-rule (⇒ x y)
+  (or (not x) y))
+
+(check-true (⇒ #f #f))
+(check-true (⇒ #f #t))
+(check-false (⇒ #t #f))
+(check-true (⇒ #t #t))
+
 ; 定義1
 
 ; もとの定義
@@ -56,7 +68,8 @@
 ;  (∃ n ≦ x (= x (* d n))))
 
 (define (CanDivide x d)
-  (= (remainder x d) 0))
+  (and (not (zero? d))
+       (= (remainder x d) 0)))
 
 (check-true (CanDivide 12 3))
 (check-false (CanDivide 12 5))
@@ -160,3 +173,30 @@
 (check-equal? (elm 360 2) 2)
 (check-equal? (elm 360 3) 1)
 (check-equal? (elm 504 3) 1)
+
+; 定義7 列の長さ
+
+(define (len x)
+  (Min k ≦ x (and (> (prime k x) 0)
+                  (= (prime (+ k 1) x) 0))))
+
+(check-equal? (len 0) 0)
+(check-equal? (len 1) 0)
+(check-equal? (len 4) 1)
+(check-equal? (len 360) 3)
+(check-equal? (len 504) 3)
+
+; 定義8 列の連結
+
+(define (M8 x y)
+  (expt (P (+ (len x) (len y))) (+ x y)))
+
+(define (** x y)
+  (Min z ≦ (M8 x y)
+       (and (∀ m ≦ (len x)
+               (⇒ (<= 1 m) (= (elm z m) (elm x m))))
+            (∀ n ≦ (len y)
+               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
+
+(check-equal? (** 8 4) 72)
+(check-equal? (** 6 2) 30)
