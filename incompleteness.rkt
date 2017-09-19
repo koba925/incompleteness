@@ -1,6 +1,7 @@
 #lang racket
 
 (require rackunit)
+(require profile)
 (require (for-syntax syntax/parse))
 (require (for-syntax racket/syntax))
 
@@ -203,10 +204,20 @@
   (let ((lenx (len x)))
     (let loop ((k 1) (n x))
       (let ((yk (elm y k)))
-        ;(printf "** x ~a y ~a k ~a yk ~a n ~a~n" x y k yk n)
         (if (= yk 0)
             n
             (loop (+ k 1) (* n (expt (P (+ lenx k)) yk))))))))
 
 (check-equal? (** 8 4) 72)
 (check-equal? (** 6 2) 30)
+
+; 定義9 xだけからなる列
+
+(define (<> x) (expt 2 x))
+
+; 定義10 xをカッコに入れた列
+
+(define (paren x)
+  (** (** (<> clp) x) (<> crp)))
+
+(check-equal? (paren (<> c0)) (* (expt 2 clp) (expt 3 c0) (expt 5 crp)))
