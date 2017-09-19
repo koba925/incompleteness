@@ -188,15 +188,25 @@
 
 ; 定義8 列の連結
 
-(define (M8 x y)
-  (expt (P (+ (len x) (len y))) (+ x y)))
+; 元のソース
+;(define (M8 x y)
+;  (expt (P (+ (len x) (len y))) (+ x y)))
+;
+;(define (** x y)
+;  (Min z ≦ (M8 x y)
+;       (and (∀ m ≦ (len x)
+;               (⇒ (<= 1 m) (= (elm z m) (elm x m))))
+;            (∀ n ≦ (len y)
+;               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
 
 (define (** x y)
-  (Min z ≦ (M8 x y)
-       (and (∀ m ≦ (len x)
-               (⇒ (<= 1 m) (= (elm z m) (elm x m))))
-            (∀ n ≦ (len y)
-               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
+  (let ((lenx (len x)))
+    (let loop ((k 1) (n x))
+      (let ((yk (elm y k)))
+        ;(printf "** x ~a y ~a k ~a yk ~a n ~a~n" x y k yk n)
+        (if (= yk 0)
+            n
+            (loop (+ k 1) (* n (expt (P (+ lenx k)) yk))))))))
 
 (check-equal? (** 8 4) 72)
 (check-equal? (** 6 2) 30)
