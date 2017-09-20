@@ -99,22 +99,31 @@
 
 ; 定義3
 
-(define (CanDivideByPrime x p)
-  (and (CanDivide x p) (IsPrime p)))
-
-(check-true (CanDivideByPrime 12 3))
-(check-false (CanDivideByPrime 12 5))
-(check-false (CanDivideByPrime 12 6))
+; 元のソース
+;(define (CanDivideByPrime x p)
+;  (and (CanDivide x p) (IsPrime p)))
+;
+;(check-true (CanDivideByPrime 12 3))
+;(check-false (CanDivideByPrime 12 5))
+;(check-false (CanDivideByPrime 12 6))
+;
+;(define (prime n x)
+;  (cond ((= n 0) 0)
+;        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
+;                              (CanDivideByPrime x p))))))
 
 (define (prime n x)
   (cond ((= n 0) 0)
-        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
-                              (CanDivideByPrime x p))))))
+        (else (let loop ((k 1) (cnt 0))
+                (let* ((p (P k))
+                      (c (if (CanDivide x p)
+                            (+ cnt 1)
+                            cnt)))
+                  (cond ((= c n) p)
+                        ((> p x) 0)
+                        (else (loop (+ k 1) c))))))))
 
-(check-eq? (prime 0 2352) 0)
-(check-eq? (prime 1 2352) 2)
-(check-eq? (prime 2 2352) 3)
-(check-eq? (prime 3 2352) 7)
+; Pを使っているのでテストは定義5で
 
 ; 定義4
 
@@ -147,28 +156,41 @@
                        (hash-set! primes n k)
                        k)
                       (else (loop (+ k 1))))))))
+; 定義3のテスト
+(check-eq? (prime 0 2352) 0)
+(check-eq? (prime 1 2352) 2)
+(check-eq? (prime 2 2352) 3)
+(check-eq? (prime 3 2352) 7)
 
+; 定義5のテスト
 (check-eq? (P 0) 0)
 (check-eq? (P 1) 2)
 (check-eq? (P 5) 11)
 
 ; 定義6 n番目の要素
 
-(define (CanDivideByPower x n k)
-  (CanDivide x (expt (prime n x) k)))
+; 元のソース
+;(define (CanDivideByPower x n k)
+;  (CanDivide x (expt (prime n x) k)))
+;
+;(define (elm x n)
+;  (Min k ≦ x (and (CanDivideByPower x n k)
+;                  (not (CanDivideByPower x n (+ k 1))))))
 
 (define (elm x n)
-  (Min k ≦ x (and (CanDivideByPower x n k)
-                  (not (CanDivideByPower x n (+ k 1))))))
+  (let ((np (prime n x)))
+    (let loop ((k 1) (x x))
+      (cond ((not (CanDivide x np)) (- k 1))
+            (else (loop (+ k 1) (/ x np)))))))
 
 ; 2^3*3^2*5^1=360
-(check-true (CanDivideByPower 360 3 1))
-(check-false (CanDivideByPower 360 3 2))
+;(check-true (CanDivideByPower 360 3 1))
+;(check-false (CanDivideByPower 360 3 2))
 
 ; (P n)ではなく(prime n x)を使っているので、歯抜けでも問題はないはず
 ; 2^3*3^2*7^1=504
-(check-true (CanDivideByPower 504 3 1))
-(check-false (CanDivideByPower 504 3 2))
+;(check-true (CanDivideByPower 504 3 1))
+;(check-false (CanDivideByPower 504 3 2))
 
 (check-equal? (elm 360 1) 3)
 (check-equal? (elm 360 2) 2)

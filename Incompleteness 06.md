@@ -48,11 +48,6 @@ cpu time: 0 real time: 1 gc time: 0
 
 おｋ
 
-つまりどんなときもかならず1から順番に探すという作戦が無理あるんだよなー
-せっかくマクロ書いたけどさー
-どうしようかなー
-でも進む
-
 定義9 xだけからなる列
 
 ```
@@ -72,8 +67,15 @@ cpu time: 55863 real time: 55844 gc time: 3880
 7500000000000
 ```
 
+さっきのテストじゃ全然甘かった
 つらい
-簡単にプロファイルが取れるようなのでやってみる
+ただの`(0)`という式を作るだけで1分かかることもつらければ
+`(0)`のゲーデル数が7500000000000というのも相当なつらさ
+いや相当などころではないか
+式の列を作ったら最低でも2^7500000000000になるんだもんな
+
+先のことは考えず目の前の問題を何とかする方向で
+調べてみると簡単にプロファイルが取れるようなのでやってみます
 
 ```
 > (require profile)
@@ -156,4 +158,38 @@ Profiling results
 > 
 ```
 
+Nameは関数名のはずなんですが`???`は何でしょう
+マクロかな？ → ラムダのことでした なるほど
+それに`loop`もたくさん出てくるせいでわかりづらいですが何しろ
 
+```
+[14] 53481(100.0%) 33580(62.8%) loop ...dy/Incompleteness/incompleteness.rkt:22:11
+```
+
+が一番時間を取ってるみたいなのでここを見てます
+`???`→`CanDivideByPower`→`loop`→`???`→CanDivideByPrimeという呼び出し順
+`CanDivideByPower`は`elm`からしか呼ばれてませんね
+そして`CanDivideByPower`が`prime`を、`prime`が`CanDivideByPrime`を
+呼んでいます
+
+```
+(define (elm x n)
+  (Min k ≦ x (and (CanDivideByPower x n k)
+                  (not (CanDivideByPower x n (+ k 1))))))
+
+(define (CanDivideByPower x n k)
+  (CanDivide x (expt (prime n x) k)))
+
+(define (prime n x)
+  (cond ((= n 0) 0)
+        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
+                              (CanDivideByPrime x p))))))
+
+(define (CanDivideByPrime x p)
+  (and (CanDivide x p) (IsPrime p)))
+```
+
+このへんの`Min`の入れ子で時間がかかってるというのはありそうな話です
+`IsPrime`以下は一応書き換え済みなのでこの範囲で高速化してみますか
+
+今日はここまで
