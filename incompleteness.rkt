@@ -273,3 +273,12 @@
 (check-true (IsVarType 17 1))
 (check-false (IsVarType 17 2))
 (check-true (IsVarType (expt 17 3) 3))
+
+; 定義12 xは"変数"である
+
+(define (IsVar x)
+  (∃ n ≦ x (IsVarType x n)))
+
+(check-true (IsVar 17))
+(check-false (IsVar 13))
+(check-true (IsVar (expt 17 3)))
