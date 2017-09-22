@@ -50,6 +50,14 @@
 (define clp 11)
 (define crp 13)
 
+; 変数
+
+; 変数
+; x1=(var 1 1)、y1=(var 2 1)、z3=(var 3 3)などと表記することにする
+(define (var n c) (expt (P (+ 6 n)) c))
+
+; テストはPの後で
+
 ; ⇒の定義
 ; これは関数だと余分な評価が走るのでマクロで
 ; (if x y #t) とどっちがわかりやすいかな
@@ -156,6 +164,10 @@
                        (hash-set! primes n k)
                        k)
                       (else (loop (+ k 1))))))))
+; varのテスト
+(check-eq? (var 1 1) 17)
+(check-eq? (var 3 3) (expt 23 3))
+
 ; 定義3のテスト
 (check-eq? (prime 0 2352) 0)
 (check-eq? (prime 1 2352) 2)
@@ -243,3 +255,21 @@
   (** (** (<> clp) x) (<> crp)))
 
 (check-equal? (paren (<> c0)) (* (expt 2 clp) (expt 3 c0) (expt 5 crp)))
+
+; 定義11 xは"第n型"の"変数"である
+
+(define (IsVarBase p)
+  (and (> p crp) (IsPrime p)))
+
+(check-true (IsVarBase 17))
+(check-false (IsVarBase 13))
+(check-false (IsVarBase 18))
+
+(define (IsVarType x n)
+  (and (>= n 1)
+       (∃ p ≦ x (and (IsVarBase p) (= x (expt p n))))))
+
+(check-false (IsVarType 13 1))
+(check-true (IsVarType 17 1))
+(check-false (IsVarType 17 2))
+(check-true (IsVarType (expt 17 3) 3))
