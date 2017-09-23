@@ -172,8 +172,10 @@
         (else (let loop ((k (+ (P (- n 1)) 1)))
                 (cond ((IsPrime k)
                        (hash-set! primes n k)
+                       ;(printf "New prime ~a ~a~n" n k)
                        k)
                       (else (loop (+ k 1))))))))
+
 ; varのテスト
 (check-eq? (var 1 1) 17)
 (check-eq? (var 3 3) (expt 23 3))
@@ -231,11 +233,18 @@
 
 ; 定義7 列の長さ
 
-(define (len x)
-  (Min k ≦ x (and (> (prime k x) 0)
-                  (= (prime (+ k 1) x) 0))))
+;(define (len x)
+;  (Min k ≦ x (and (> (prime k x) 0)
+;                  (= (prime (+ k 1) x) 0))))
 
-(check-equal? (len 0) 0)
+(define (len x)
+  (if (= x 0)
+      0
+      (let loop ((k 1))
+        (cond ((= (prime k x) 0) (- k 1))
+              (else (loop (+ k 1)))))))
+
+(check-equal? (len 0) 0) ;意味がある？
 (check-equal? (len 1) 0)
 (check-equal? (len 4) 1)
 (check-equal? (len 360) 3)
@@ -308,4 +317,4 @@
 (define (¬ x)
   (** (<> cnot) (paren x)))
 
-(check-equal? (¬ (<> (var 1 1))) (gnum cnot clp 17 crp))
+;(check-equal? (¬ (<> (var 1 1))) (gnum cnot clp 17 crp))
