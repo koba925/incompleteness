@@ -52,9 +52,19 @@
 
 ; 変数
 
-; 変数
 ; x1=(var 1 1)、y1=(var 2 1)、z3=(var 3 3)などと表記することにする
 (define (var n c) (expt (P (+ 6 n)) c))
+
+; テストはPの後で
+
+; ゲーデル数
+
+(define (gnum . seq)
+  (define (iter s k n)
+    (if (null? s)
+        n
+        (iter (cdr s) (+ k 1) (* (expt (P k) (car s)) n))))
+  (iter seq 1 1))
 
 ; テストはPの後で
 
@@ -167,6 +177,16 @@
 ; varのテスト
 (check-eq? (var 1 1) 17)
 (check-eq? (var 3 3) (expt 23 3))
+
+; gnumのテスト
+(check-equal? (gnum) 1)
+(check-equal? (gnum 3 2 1) 360)
+(check-equal? (gnum call (var 1 2) clp (var 1 1) crp)
+              (* (expt 2 call)
+                 (expt 3 (var 1 2))
+                 (expt 5 clp)
+                 (expt 7 (var 1 1))
+                 (expt 11 crp)))
 
 ; 定義3のテスト
 (check-eq? (prime 0 2352) 0)
@@ -282,3 +302,10 @@
 (check-true (IsVar 17))
 (check-false (IsVar 13))
 (check-true (IsVar (expt 17 3)))
+
+; 定義13 ¬(x)
+
+(define (¬ x)
+  (** (<> cnot) (paren x)))
+
+(check-equal? (¬ (<> (var 1 1))) (gnum cnot clp 17 crp))
