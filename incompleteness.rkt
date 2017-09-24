@@ -131,15 +131,19 @@
 ;                              (CanDivideByPrime x p))))))
 
 (define (prime n x)
+  ;(printf "prime ~a ~a~n" n x)
   (cond ((= n 0) 0)
-        (else (let loop ((k 1) (cnt 0))
+        (else (let loop ((k 1) (cnt 0) (x x))
+                (define (newc x p cnt)
+                  (if (CanDivide x p) (+ cnt 1) cnt))
+                (define (newx x p)
+                  (if (CanDivide x p) (newx (/ x p) p) x))
                 (let* ((p (P k))
-                      (c (if (CanDivide x p)
-                            (+ cnt 1)
-                            cnt)))
+                       (c (newc x p cnt))
+                       (x (newx x p)))
                   (cond ((= c n) p)
-                        ((> p x) 0)
-                        (else (loop (+ k 1) c))))))))
+                        ((= x 1) 0)
+                        (else (loop (+ k 1) c x))))))))
 
 ; Pを使っているのでテストは定義5で
 
@@ -172,7 +176,7 @@
         (else (let loop ((k (+ (P (- n 1)) 1)))
                 (cond ((IsPrime k)
                        (hash-set! primes n k)
-                       ;(printf "New prime ~a ~a~n" n k)
+                       (printf "New prime ~a ~a~n" n k)
                        k)
                       (else (loop (+ k 1))))))))
 
@@ -212,6 +216,7 @@
 ;                  (not (CanDivideByPower x n (+ k 1))))))
 
 (define (elm x n)
+  (printf "elm ~a ~a~n" x n)
   (let ((np (prime n x)))
     (let loop ((k 1) (x x))
       (cond ((not (CanDivide x np)) (- k 1))
@@ -238,6 +243,7 @@
 ;                  (= (prime (+ k 1) x) 0))))
 
 (define (len x)
+  (printf "len ~a~n" x)
   (if (= x 0)
       0
       (let loop ((k 1))
@@ -264,6 +270,7 @@
 ;               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
 
 (define (** x y)
+  (printf "** ~a ~a~n" x y)
   (let ((lenx (len x)))
     (let loop ((k 1) (n x))
       (let ((yk (elm y k)))
@@ -317,4 +324,4 @@
 (define (¬ x)
   (** (<> cnot) (paren x)))
 
-;(check-equal? (¬ (<> (var 1 1))) (gnum cnot clp 17 crp))
+(check-equal? (¬ (<> (var 1 1))) (gnum cnot clp 17 crp))
