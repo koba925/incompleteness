@@ -176,7 +176,7 @@
         (else (let loop ((k (+ (P (- n 1)) 1)))
                 (cond ((IsPrime k)
                        (hash-set! primes n k)
-                       (printf "New prime ~a ~a~n" n k)
+                       ;(printf "New prime ~a ~a~n" n k)
                        k)
                       (else (loop (+ k 1))))))))
 
@@ -216,7 +216,7 @@
 ;                  (not (CanDivideByPower x n (+ k 1))))))
 
 (define (elm x n)
-  (printf "elm ~a ~a~n" x n)
+  ;(printf "elm ~a ~a~n" x n)
   (let ((np (prime n x)))
     (let loop ((k 1) (x x))
       (cond ((not (CanDivide x np)) (- k 1))
@@ -243,7 +243,7 @@
 ;                  (= (prime (+ k 1) x) 0))))
 
 (define (len x)
-  (printf "len ~a~n" x)
+  ;(printf "len ~a~n" x)
   (if (= x 0)
       0
       (let loop ((k 1))
@@ -270,7 +270,7 @@
 ;               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
 
 (define (** x y)
-  (printf "** ~a ~a~n" x y)
+  ;(printf "** ~a ~a~n" x y)
   (let ((lenx (len x)))
     (let loop ((k 1) (n x))
       (let ((yk (elm y k)))
@@ -321,7 +321,41 @@
 
 ; 定義13 ¬(x)
 
-(define (¬ x)
+(define (Not x)
   (** (<> cnot) (paren x)))
 
-(check-equal? (¬ (<> (var 1 1))) (gnum cnot clp 17 crp))
+(check-equal? (Not (<> (var 1 1))) (gnum cnot clp 17 crp))
+
+; 定義14 (x)∨(y)
+
+(define (Or x y)
+  (** (** (paren x) (<> cor)) (paren y)))
+
+(check-equal? (Or (<> (var 1 1)) (<> (var 2 1)))
+              (gnum clp (var 1 1) crp cor clp (var 2 1) crp))
+
+; 定義15 ∀x(a)
+
+(define (ForAll x a)
+  (** (** (<> call) (<> x)) (paren a)))
+
+(check-equal? (ForAll (var 1 1) (<> (var 1 2)))
+              (gnum call (var 1 1) clp (var 1 2) crp))
+
+; 定義16 xの、n番目の後続数
+
+(define (succ n x)
+  (cond ((= n 0) x)
+        (else (** (<> cf) (succ (- n 1) x)))))
+
+(check-equal? (succ 0 (<> c0)) (gnum c0))
+(check-equal? (succ 2 (<> c0)) (gnum cf cf c0))
+(check-equal? (succ 1 (<> (var 2 2))) (gnum cf (var 2 2)))
+
+; 定義17 nに対する"数項"
+
+(define (￣ n)
+  (succ n (<> c0)))
+
+(check-equal? (￣ 0) (gnum c0))
+(check-equal? (￣ 3) (gnum cf cf cf c0))
