@@ -19,7 +19,7 @@
      #:with fname (format-id stx "~a≦" #'name)
      #'(begin
          (define (fname max f)
-           (let loop ((x 1))
+           (let loop ((x 0))
              (cond ((> x max) (notfound x))
                    ((term (f x)) (found x))
                    (else (loop (+ x 1))))))
@@ -27,7 +27,9 @@
            (syntax-parse stx
              #:literals (≦)
              [(_ v:id ≦ max:expr body:expr)
-              #'(fname max (λ (v) body))]))))))
+              #'(fname max (λ (v) body))]
+             [(_ v1:id v2:id ≦ max:expr body:expr)
+              #'(fname max (λ (v1) (fname max (λ (v2) body))))]))))))
 
 (define-equipment ∀ not (const #t) (const #f))
 (define-equipment ∃ identity (const #f) (const #t))
@@ -208,12 +210,28 @@
 ; 定義6 n番目の要素
 
 ; 元のソース
-;(define (CanDivideByPower x n k)
-;  (CanDivide x (expt (prime n x) k)))
-;
-;(define (elm x n)
-;  (Min k ≦ x (and (CanDivideByPower x n k)
-;                  (not (CanDivideByPower x n (+ k 1))))))
+(define (CanDivideByPower x n k)
+  (CanDivide x (expt (prime n x) k)))
+
+; 2^3*3^2*5^1=360
+(check-true (CanDivideByPower 360 3 0))
+(check-true (CanDivideByPower 360 3 1))
+(check-false (CanDivideByPower 360 3 2))
+
+; (P n)ではなく(prime n x)を使っているので、歯抜けでも問題はないはず
+; 2^3*3^2*7^1=504
+(check-true (CanDivideByPower 504 3 1))
+(check-true (CanDivideByPower 504 3 1))
+(check-false (CanDivideByPower 504 3 2))
+
+(define (elm-o x n)
+  (Min k ≦ x (and (CanDivideByPower x n k)
+                  (not (CanDivideByPower x n (+ k 1))))))
+
+(check-equal? (elm-o 360 1) 3)
+(check-equal? (elm-o 360 2) 2)
+(check-equal? (elm-o 360 3) 1)
+(check-equal? (elm-o 504 3) 1)
 
 (define (elm x n)
   ;(printf "elm ~a ~a~n" x n)
@@ -221,15 +239,6 @@
     (let loop ((k 1) (x x))
       (cond ((not (CanDivide x np)) (- k 1))
             (else (loop (+ k 1) (/ x np)))))))
-
-; 2^3*3^2*5^1=360
-;(check-true (CanDivideByPower 360 3 1))
-;(check-false (CanDivideByPower 360 3 2))
-
-; (P n)ではなく(prime n x)を使っているので、歯抜けでも問題はないはず
-; 2^3*3^2*7^1=504
-;(check-true (CanDivideByPower 504 3 1))
-;(check-false (CanDivideByPower 504 3 2))
 
 (check-equal? (elm 360 1) 3)
 (check-equal? (elm 360 2) 2)
@@ -359,3 +368,29 @@
 
 (check-equal? (￣ 0) (gnum c0))
 (check-equal? (￣ 3) (gnum cf cf cf c0))
+
+; 定義18 "第1型の記号である"
+
+; 変数がふたつある こんな風に展開されてほしい
+;(define (IsNumberType x)
+;  (∃≦ x (λ (m)
+;          (∃≦ x (λ (n)
+;                  (and (or (= m c0) (IsVarType m 1))
+;                       (= x (succ n (<> m)))))))))
+
+
+;(define (IsNumberType x)
+;  (∃ m n ≦ x 
+;     (begin
+;       (printf "~a ~a ~a~n" m n x)
+;       (and (or (= m c0) (IsVarType m 1))
+;          (= x (succ n (<> m)))))))
+
+(define (IsNumberType x)
+  (∃ m n ≦ x 
+       (and (or (= m c0) (IsVarType m 1))
+          (= x (succ n (<> m))))))
+
+(check-true (IsNumberType (gnum c0)))
+(check-true (IsNumberType (gnum cf c0)))
+(check-false (IsNumberType (gnum c0 c0)))
