@@ -386,11 +386,26 @@
 ;       (and (or (= m c0) (IsVarType m 1))
 ;          (= x (succ n (<> m)))))))
 
-(define (IsNumberType x)
-  (∃ m n ≦ x 
-       (and (or (= m c0) (IsVarType m 1))
-          (= x (succ n (<> m))))))
+;(define (IsNumberType x)
+;  (∃ m n ≦ x 
+;       (and (or (= m c0) (IsVarType m 1))
+;          (= x (succ n (<> m))))))
 
+(define (IsNumberType x)
+  (let loop ((k 1))
+    (let ((e (elm x k)))
+      (cond ((not (= e cf))
+             (and (or (= e c0) (IsVarType e 1))
+                  (= (elm x (+ k 1)) 0)))
+            (else (loop (+ k 1)))))))
+
+(check-false (IsNumberType (gnum clp)))
 (check-true (IsNumberType (gnum c0)))
-(check-true (IsNumberType (gnum cf c0)))
 (check-false (IsNumberType (gnum c0 c0)))
+(check-true (IsNumberType (gnum cf c0)))
+(check-false (IsNumberType (gnum cf c0 clp)))
+(check-true (IsNumberType (gnum (var 1 1))))
+(check-false (IsNumberType (gnum (var 1 1) c0)))
+(check-true (IsNumberType (gnum cf (var 1 1))))
+(check-false (IsNumberType (gnum cf (var 1 1) c0)))
+
