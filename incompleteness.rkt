@@ -386,11 +386,6 @@
 ;       (and (or (= m c0) (IsVarType m 1))
 ;          (= x (succ n (<> m)))))))
 
-;(define (IsNumberType x)
-;  (∃ m n ≦ x 
-;       (and (or (= m c0) (IsVarType m 1))
-;          (= x (succ n (<> m))))))
-
 (define (IsNumberType x)
   (let loop ((k 1))
     (let ((e (elm x k)))
@@ -408,4 +403,17 @@
 (check-false (IsNumberType (gnum (var 1 1) c0)))
 (check-true (IsNumberType (gnum cf (var 1 1))))
 (check-false (IsNumberType (gnum cf (var 1 1) c0)))
+
+; 定義18 "第n型の記号"である
+
+(define (IsNthType x n)
+  (or (and (= n 1) (IsNumberType x))
+      (and (> n 1) (∃ v ≦ x (and (IsVarType v n) (= x (<> v)))))))
+
+(check-true (IsNthType (gnum c0) 1))
+(check-true (IsNthType (gnum cf c0) 1))
+(check-true (IsNthType (gnum (var 1 1)) 1))
+(check-true (IsNthType (gnum cf (var 1 1)) 1))
+(check-true (IsNthType (gnum (var 1 2)) 2))
+(check-true (IsNthType (gnum cf (var 1 2)) 2))
 
