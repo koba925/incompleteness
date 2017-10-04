@@ -406,18 +406,21 @@
 
 ; 定義18 "第n型の記号"である
 
+; 元のソース
 ;(define (IsNthType x n)
 ;  (or (and (= n 1) (IsNumberType x))
 ;      (and (> n 1) (∃ v ≦ x (and (IsVarType v n) (= x (<> v)))))))
 
 (define (IsNthType x n)
   (cond ((= n 1) (IsNumberType x))
-        (else (let loop ((k 7))
-                (let ((v (expt (P k) n)))
-                  (printf "IsNumberType ~a ~a ~a ~a~n" x n k v)
-                  (cond ((> v x) #f)
-                        ((= v x) #t)
-                        (else (loop (+ k 1)))))))))
+        (else
+         (let ((e (elm x 1)))
+           (let loop ((k 7))
+             (let ((v (expt (P k) n)))
+               ;(printf "IsNumberType ~a ~a ~a ~a~n" x n k v)
+               (cond ((> v e) #f)
+                     ((= v e) #t)
+                     (else (loop (+ k 1))))))))))
 
 (check-true (IsNthType (gnum c0) 1))
 (check-false (IsNthType (gnum c0) 2))
@@ -427,7 +430,7 @@
 (check-false (IsNthType (gnum (var 1 1)) 2))
 (check-true (IsNthType (gnum cf (var 1 1)) 1))
 (check-false (IsNthType (gnum cf (var 1 1)) 2))
-;(check-false (IsNthType (gnum (var 1 2)) 1))
-;(check-true (IsNthType (gnum (var 1 2)) 2))
-;(check-true (IsNthType (gnum cf (var 1 2)) 2))
+(check-false (IsNthType (gnum (var 1 2)) 1))
+(check-true (IsNthType (gnum (var 1 2)) 2))
+(check-false (IsNthType (gnum cf (var 1 2)) 2))
 
