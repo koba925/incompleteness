@@ -411,16 +411,51 @@
 ;  (or (and (= n 1) (IsNumberType x))
 ;      (and (> n 1) (∃ v ≦ x (and (IsVarType v n) (= x (<> v)))))))
 
+;(define (IsNthType x n)
+;  (cond ((= n 1) (IsNumberType x))
+;        (else
+;         (let ((e (elm x 1)))
+;           (let loop ((k 7))
+;             (let ((v (expt (P k) n)))
+;               ;(printf "IsNumberType ~a ~a ~a ~a~n" x n k v)
+;               (cond ((> v e) #f)
+;                     ((= v e) #t)
+;                     (else (loop (+ k 1))))))))))
+
+(define (times-divide x p)
+  (let loop ((k 1) (x x))
+    (cond ((not (CanDivide x p)) (values x (- k 1)))
+          (else (loop (+ k 1) (/ x p))))))
+
+(define (factorization x)
+  (let loop ((n 1) (x x) (f '()))
+    (if (= x 1)
+        (reverse f)
+        (let*-values (((pn) (P n))
+                      ((x k) (times-divide x pn)))
+          (loop (+ n 1)
+                x
+                (if (= k 0)
+                    f
+                    (cons (cons pn k) f)))))))
+
+(check-equal? (factorization 1) '())
+(check-equal? (factorization 100) '((2 . 2) (5 . 2)))
+
+(define factor-length length)
+(define factor-prime car)
+(define factor-expt cdr)
+
+(define (type x)
+  (factor-expt (car (factorization x))))
+
 (define (IsNthType x n)
   (cond ((= n 1) (IsNumberType x))
-        (else
-         (let ((e (elm x 1)))
-           (let loop ((k 7))
-             (let ((v (expt (P k) n)))
-               ;(printf "IsNumberType ~a ~a ~a ~a~n" x n k v)
-               (cond ((> v e) #f)
-                     ((= v e) #t)
-                     (else (loop (+ k 1))))))))))
+        ((not (= (len x) 1)) #f)
+        (else (let ((f (factorization (elm x 1))))
+                (and (= (factor-length f) 1)
+                     (> (factor-prime (car f)) crp)
+                     (= (factor-expt (car f)) n))))))
 
 (check-true (IsNthType (gnum c0) 1))
 (check-false (IsNthType (gnum c0) 2))
@@ -432,5 +467,7 @@
 (check-false (IsNthType (gnum cf (var 1 1)) 2))
 (check-false (IsNthType (gnum (var 1 2)) 1))
 (check-true (IsNthType (gnum (var 1 2)) 2))
-(check-false (IsNthType (gnum cf (var 1 2)) 2))
+(check-false (IsNthType (gnum (var 2 2)) 1))
+(check-true (IsNthType (gnum (var 2 2)) 2))
+(check-false (IsNthType (gnum cf (var 2 2)) 2))
 
