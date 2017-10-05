@@ -132,22 +132,29 @@
 ;        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
 ;                              (CanDivideByPrime x p))))))
 
+; 高速化版
+;(define (prime n x)
+;  ;(printf "prime ~a ~a~n" n x)
+;  (cond ((= n 0) 0)
+;        (else (let loop ((k 1) (cnt 0) (x x))
+;                (define (newc x p cnt)
+;                  (if (CanDivide x p) (+ cnt 1) cnt))
+;                (define (newx x p)
+;                  (if (CanDivide x p) (newx (/ x p) p) x))
+;                (let* ((p (P k))
+;                       (c (newc x p cnt))
+;                       (x (newx x p)))
+;                  (cond ((= c n) p)
+;                        ((= x 1) 0)
+;                        (else (loop (+ k 1) c x))))))))
+
+; 素因数分解を利用する版
+; nが範囲外だったり、xが0や1でもうまくいくようにfactor*が吸収してくれる
 (define (prime n x)
   ;(printf "prime ~a ~a~n" n x)
-  (cond ((= n 0) 0)
-        (else (let loop ((k 1) (cnt 0) (x x))
-                (define (newc x p cnt)
-                  (if (CanDivide x p) (+ cnt 1) cnt))
-                (define (newx x p)
-                  (if (CanDivide x p) (newx (/ x p) p) x))
-                (let* ((p (P k))
-                       (c (newc x p cnt))
-                       (x (newx x p)))
-                  (cond ((= c n) p)
-                        ((= x 1) 0)
-                        (else (loop (+ k 1) c x))))))))
+  (factor-prime (factor-nth (factorization x) n)))
 
-; Pを使っているのでテストは定義5で
+; factorizationを使っているのでテストはfactorizationの定義の後で
 
 ; 定義4
 
@@ -196,16 +203,67 @@
                  (expt 7 (var 1 1))
                  (expt 11 crp)))
 
+; 定義5のテスト
+(check-eq? (P 0) 0)
+(check-eq? (P 1) 2)
+(check-eq? (P 5) 11)
+
+; 素因数分解
+
+(define (times-divide x p)
+  (let loop ((k 1) (x x))
+    (cond ((not (CanDivide x p)) (values x (- k 1)))
+          (else (loop (+ k 1) (/ x p))))))
+
+; 0や1の素因数分解は特別扱いする
+; ゲーデルの関数は定義域をはずれたとき0を返すようになっているので
+; これでうまくいく
+(define (factorization x)
+  (if (or (= x 0) (= x 1))
+      '((0 . 0))
+      (let loop ((n 1) (x x) (f '()))
+        (if (= x 1)
+            (reverse f)
+            (let*-values (((pn) (P n))
+                          ((x k) (times-divide x pn)))
+              (loop (+ n 1)
+                    x
+                    (if (= k 0)
+                        f
+                        (cons (cons pn k) f))))))))
+
+;こう書きたいところだが、nが範囲外のときは0を返す必要がある
+;(define factor-length length)
+;(define (factor-nth f n) (list-ref f (- n 1)))
+
+(define (factor-length f)
+  (if (equal? f '((0 . 0)))
+      0
+      (length f)))
+
+(define (factor-nth f n)
+  (cond ((null? f) '(0 . 0))
+        ((= n 1) (car f))
+        (else (factor-nth (cdr f) (- n 1)))))
+(define factor-prime car)
+(define factor-expt cdr)
+
+(check-equal? (factorization 0) '((0 . 0)))
+(check-equal? (factorization 1) '((0 . 0)))
+(check-equal? (factorization 40) '((2 . 3) (5 . 1)))  
+
+(check-eq? (factor-length (factorization 0)) 0)
+(check-eq? (factor-length (factorization 40)) 2)
+(check-equal? (factor-nth (factorization 40) 0) '(0 . 0))
+(check-equal? (factor-nth (factorization 40) 1) '(2 . 3))
+(check-equal? (factor-nth (factorization 40) 2) '(5 . 1))
+(check-equal? (factor-nth (factorization 40) 3) '(0 . 0))
+
 ; 定義3のテスト
 (check-eq? (prime 0 2352) 0)
 (check-eq? (prime 1 2352) 2)
 (check-eq? (prime 2 2352) 3)
 (check-eq? (prime 3 2352) 7)
-
-; 定義5のテスト
-(check-eq? (P 0) 0)
-(check-eq? (P 1) 2)
-(check-eq? (P 5) 11)
 
 ; 定義6 n番目の要素
 
@@ -233,16 +291,30 @@
 (check-equal? (elm-o 360 3) 1)
 (check-equal? (elm-o 504 3) 1)
 
-(define (elm x n)
-  ;(printf "elm ~a ~a~n" x n)
-  (let ((np (prime n x)))
-    (let loop ((k 1) (x x))
-      (cond ((not (CanDivide x np)) (- k 1))
-            (else (loop (+ k 1) (/ x np)))))))
+; 高速化版
+;(define (elm x n)
+;  ;(printf "elm ~a ~a~n" x n)
+;  (let ((np (prime n x)))
+;    (let loop ((k 1) (x x))
+;      (cond ((not (CanDivide x np)) (- k 1))
+;            (else (loop (+ k 1) (/ x np)))))))
 
+; 素因数分解を利用する版
+; nが範囲外だったり、xが0や1でもうまくいくようにfactor*が吸収してくれる
+(define (elm x n)
+  (factor-expt (factor-nth (factorization x) n)))
+
+(check-equal? (elm 0 0) 0)
+(check-equal? (elm 0 1) 0)
+(check-equal? (elm 0 2) 0)
+(check-equal? (elm 1 0) 0)
+(check-equal? (elm 1 1) 0)
+(check-equal? (elm 1 2) 0)
+(check-equal? (elm 360 0) 0)
 (check-equal? (elm 360 1) 3)
 (check-equal? (elm 360 2) 2)
 (check-equal? (elm 360 3) 1)
+(check-equal? (elm 360 5) 0)
 (check-equal? (elm 504 3) 1)
 
 ; 定義7 列の長さ
@@ -251,16 +323,22 @@
 ;  (Min k ≦ x (and (> (prime k x) 0)
 ;                  (= (prime (+ k 1) x) 0))))
 
+; 高速化版
+;(define (len x)
+;  ;(printf "len ~a~n" x)
+;  (if (or (= x 0) (= x 1))
+;      0
+;      (let loop ((k 1))
+;        (cond ((= (prime k x) 0) (- k 1))
+;              (else (loop (+ k 1)))))))
+
+; 素因数分解を利用する版
+; xが0や1でもうまくいくようにfactor*が吸収してくれる
 (define (len x)
-  ;(printf "len ~a~n" x)
-  (if (= x 0)
-      0
-      (let loop ((k 1))
-        (cond ((= (prime k x) 0) (- k 1))
-              (else (loop (+ k 1)))))))
+  (factor-length (factorization x)))
 
 (check-equal? (len 0) 0) ;意味がある？
-(check-equal? (len 1) 0)
+(check-equal? (len 1) 0) 
 (check-equal? (len 4) 1)
 (check-equal? (len 360) 3)
 (check-equal? (len 504) 3)
@@ -279,7 +357,7 @@
 ;               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
 
 (define (** x y)
-  ;(printf "** ~a ~a~n" x y)
+  (printf "** ~a ~a~n" x y)
   (let ((lenx (len x)))
     (let loop ((k 1) (n x))
       (let ((yk (elm y k)))
@@ -421,30 +499,6 @@
 ;               (cond ((> v e) #f)
 ;                     ((= v e) #t)
 ;                     (else (loop (+ k 1))))))))))
-
-(define (times-divide x p)
-  (let loop ((k 1) (x x))
-    (cond ((not (CanDivide x p)) (values x (- k 1)))
-          (else (loop (+ k 1) (/ x p))))))
-
-(define (factorization x)
-  (let loop ((n 1) (x x) (f '()))
-    (if (= x 1)
-        (reverse f)
-        (let*-values (((pn) (P n))
-                      ((x k) (times-divide x pn)))
-          (loop (+ n 1)
-                x
-                (if (= k 0)
-                    f
-                    (cons (cons pn k) f)))))))
-
-(check-equal? (factorization 1) '())
-(check-equal? (factorization 100) '((2 . 2) (5 . 2)))
-
-(define factor-length length)
-(define factor-prime car)
-(define factor-expt cdr)
 
 (define (type x)
   (factor-expt (car (factorization x))))
