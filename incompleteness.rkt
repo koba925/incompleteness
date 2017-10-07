@@ -28,8 +28,8 @@
              #:literals (≦)
              [(_ v:id ≦ max:expr body:expr)
               #'(fname max (λ (v) body))]
-             [(_ v1:id v2:id ≦ max:expr body:expr)
-              #'(fname max (λ (v1) (fname max (λ (v2) body))))]))))))
+             [(_ v:id ...+ vn:id ≦ max:expr body:expr)
+              #'(name v (... ...) ≦ max (fname max (λ (vn) body)))]))))))
 
 (define-equipment ∀ not (const #t) (const #f))
 (define-equipment ∃ identity (const #f) (const #t))
@@ -436,7 +436,7 @@
 (check-true (IsNumberType (gnum cf (var 1 1))))
 (check-false (IsNumberType (gnum cf (var 1 1) c0)))
 
-; 定義18 "第n型の記号"である
+; 定義19 "第n型の記号"である
 
 ; 元のソース
 ;(define (IsNthType x n)
@@ -469,3 +469,7 @@
 (check-true (IsNthType (gnum (var 2 2)) 2))
 (check-false (IsNthType (gnum cf (var 2 2)) 2))
 
+; 定義20 xは"基本論理式"である
+
+(define (IsElementForm x)
+  #f)
