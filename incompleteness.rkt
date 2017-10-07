@@ -42,34 +42,6 @@
 (check-eq? (Min x ≦ 3 (= x 2)) 2)
 (check-eq? (Min x ≦ 3 (= x 4)) 0)
 
-; 定数
-
-(define c0 1)
-(define cf 3)
-(define cnot 5)
-(define cor 7)
-(define call 9)
-(define clp 11)
-(define crp 13)
-
-; 変数
-
-; x1=(var 1 1)、y1=(var 2 1)、z3=(var 3 3)などと表記することにする
-(define (var n c) (expt (P (+ 6 n)) c))
-
-; テストはPの後で
-
-; ゲーデル数
-
-(define (gnum . seq)
-  (define (iter s k n)
-    (if (null? s)
-        n
-        (iter (cdr s) (+ k 1) (* (expt (P k) (car s)) n))))
-  (iter seq 1 1))
-
-; テストはPの後で
-
 ; ⇒の定義
 ; これは関数だと余分な評価が走るのでマクロで
 ; (if x y #t) とどっちがわかりやすいかな
@@ -82,7 +54,7 @@
 (check-false (⇒ #t #f))
 (check-true (⇒ #t #t))
 
-; 定義1
+; 定義1 xはdで割り切れる
 
 ; もとの定義
 ;(define (CanDivide x d)
@@ -95,7 +67,7 @@
 (check-true (CanDivide 12 3))
 (check-false (CanDivide 12 5))
 
-; 定義2
+; 定義2 xは素数である
 
 ; もとの定義
 ;(define (IsPrime x)
@@ -117,46 +89,7 @@
 (check-false (IsPrime 12))
 (check-true (IsPrime 17))
 
-; 定義3
-
-; 元のソース
-;(define (CanDivideByPrime x p)
-;  (and (CanDivide x p) (IsPrime p)))
-;
-;(check-true (CanDivideByPrime 12 3))
-;(check-false (CanDivideByPrime 12 5))
-;(check-false (CanDivideByPrime 12 6))
-;
-;(define (prime n x)
-;  (cond ((= n 0) 0)
-;        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
-;                              (CanDivideByPrime x p))))))
-
-; 高速化版
-;(define (prime n x)
-;  ;(printf "prime ~a ~a~n" n x)
-;  (cond ((= n 0) 0)
-;        (else (let loop ((k 1) (cnt 0) (x x))
-;                (define (newc x p cnt)
-;                  (if (CanDivide x p) (+ cnt 1) cnt))
-;                (define (newx x p)
-;                  (if (CanDivide x p) (newx (/ x p) p) x))
-;                (let* ((p (P k))
-;                       (c (newc x p cnt))
-;                       (x (newx x p)))
-;                  (cond ((= c n) p)
-;                        ((= x 1) 0)
-;                        (else (loop (+ k 1) c x))))))))
-
-; 素因数分解を利用する版
-; nが範囲外だったり、xが0や1でもうまくいくようにfactor*が吸収してくれる
-(define (prime n x)
-  ;(printf "prime ~a ~a~n" n x)
-  (factor-prime (factor-nth (factorization x) n)))
-
-; factorizationを使っているのでテストはfactorizationの定義の後で
-
-; 定義4
+; 定義4 nの階乗
 
 (define (factorial n)
   (cond ((= n 0) 1)
@@ -165,7 +98,7 @@
 (check-eq? (factorial 0) 1)
 (check-eq? (factorial 3) 6)
 
-; 定義5
+; 定義5 n番目の素数
 
 ; 元のソース
 ;(define (M5 n)
@@ -189,21 +122,6 @@
                        k)
                       (else (loop (+ k 1))))))))
 
-; varのテスト
-(check-eq? (var 1 1) 17)
-(check-eq? (var 3 3) (expt 23 3))
-
-; gnumのテスト
-(check-equal? (gnum) 1)
-(check-equal? (gnum 3 2 1) 360)
-(check-equal? (gnum call (var 1 2) clp (var 1 1) crp)
-              (* (expt 2 call)
-                 (expt 3 (var 1 2))
-                 (expt 5 clp)
-                 (expt 7 (var 1 1))
-                 (expt 11 crp)))
-
-; 定義5のテスト
 (check-eq? (P 0) 0)
 (check-eq? (P 1) 2)
 (check-eq? (P 5) 11)
@@ -218,19 +136,27 @@
 ; 0や1の素因数分解は特別扱いする
 ; ゲーデルの関数は定義域をはずれたとき0を返すようになっているので
 ; これでうまくいく
+
+(define factorizations (make-hash))
+(hash-set! factorizations 0 '((0 . 0)))
+(hash-set! factorizations 1 '((0 . 0)))
+
 (define (factorization x)
-  (if (or (= x 0) (= x 1))
-      '((0 . 0))
-      (let loop ((n 1) (x x) (f '()))
-        (if (= x 1)
-            (reverse f)
-            (let*-values (((pn) (P n))
-                          ((x k) (times-divide x pn)))
-              (loop (+ n 1)
-                    x
-                    (if (= k 0)
-                        f
-                        (cons (cons pn k) f))))))))
+  ;(printf "factorization ~a~n" x)
+  (cond ((hash-ref factorizations x #f))
+        (else
+         (let loop ((n 1) (x1 x) (f '()))
+           (if (= x1 1)
+               (let ((f (reverse f)))
+                 (hash-set! factorizations x f)
+                 f)
+               (let*-values (((pn) (P n))
+                             ((x1 k) (times-divide x1 pn)))
+                 (loop (+ n 1)
+                       x1
+                       (if (= k 0)
+                           f
+                           (cons (cons pn k) f)))))))))
 
 ;こう書きたいところだが、nが範囲外のときは0を返す必要がある
 ;(define factor-length length)
@@ -259,45 +185,88 @@
 (check-equal? (factor-nth (factorization 40) 2) '(5 . 1))
 (check-equal? (factor-nth (factorization 40) 3) '(0 . 0))
 
-; 定義3のテスト
+; 定義3 n番目の、xの素因数
+
+; 元のソース
+;(define (CanDivideByPrime x p)
+;  (and (CanDivide x p) (IsPrime p)))
+;
+;(check-true (CanDivideByPrime 12 3))
+;(check-false (CanDivideByPrime 12 5))
+;(check-false (CanDivideByPrime 12 6))
+;
+;(define (prime n x)
+;  (cond ((= n 0) 0)
+;        (else (Min p ≦ x (and (< (prime (- n 1) x) p)
+;                              (CanDivideByPrime x p))))))
+
+; 素因数分解を利用する版
+; nが範囲外だったり、xが0や1でもうまくいくようにfactor*が吸収してくれる
+(define (prime n x)
+  ;(printf "prime ~a ~a~n" n x)
+  (factor-prime (factor-nth (factorization x) n)))
+
 (check-eq? (prime 0 2352) 0)
 (check-eq? (prime 1 2352) 2)
 (check-eq? (prime 2 2352) 3)
 (check-eq? (prime 3 2352) 7)
 
+; 定数
+
+(define c0 1)
+(define cf 3)
+(define cnot 5)
+(define cor 7)
+(define call 9)
+(define clp 11)
+(define crp 13)
+
+; 変数
+
+; x1=(var 1 1)、y1=(var 2 1)、z3=(var 3 3)などと表記することにする
+(define (var n c) (expt (P (+ 6 n)) c))
+
+(check-eq? (var 1 1) 17)
+(check-eq? (var 3 3) (expt 23 3))
+
+; ゲーデル数
+
+(define (gnum . seq)
+  (define (iter s k n)
+    (if (null? s)
+        n
+        (iter (cdr s) (+ k 1) (* (expt (P k) (car s)) n))))
+  (iter seq 1 1))
+
+(check-equal? (gnum) 1)
+(check-equal? (gnum 3 2 1) 360)
+(check-equal? (gnum call (var 1 2) clp (var 1 1) crp)
+              (* (expt 2 call)
+                 (expt 3 (var 1 2))
+                 (expt 5 clp)
+                 (expt 7 (var 1 1))
+                 (expt 11 crp)))
+
 ; 定義6 n番目の要素
 
 ; 元のソース
-(define (CanDivideByPower x n k)
-  (CanDivide x (expt (prime n x) k)))
-
-; 2^3*3^2*5^1=360
-(check-true (CanDivideByPower 360 3 0))
-(check-true (CanDivideByPower 360 3 1))
-(check-false (CanDivideByPower 360 3 2))
-
-; (P n)ではなく(prime n x)を使っているので、歯抜けでも問題はないはず
-; 2^3*3^2*7^1=504
-(check-true (CanDivideByPower 504 3 1))
-(check-true (CanDivideByPower 504 3 1))
-(check-false (CanDivideByPower 504 3 2))
-
-(define (elm-o x n)
-  (Min k ≦ x (and (CanDivideByPower x n k)
-                  (not (CanDivideByPower x n (+ k 1))))))
-
-(check-equal? (elm-o 360 1) 3)
-(check-equal? (elm-o 360 2) 2)
-(check-equal? (elm-o 360 3) 1)
-(check-equal? (elm-o 504 3) 1)
-
-; 高速化版
+;(define (CanDivideByPower x n k)
+;  (CanDivide x (expt (prime n x) k)))
+;
+;; 2^3*3^2*5^1=360
+;(check-true (CanDivideByPower 360 3 0))
+;(check-true (CanDivideByPower 360 3 1))
+;(check-false (CanDivideByPower 360 3 2))
+;
+;; (P n)ではなく(prime n x)を使っているので、歯抜けでも問題はないはず
+;; 2^3*3^2*7^1=504
+;(check-true (CanDivideByPower 504 3 1))
+;(check-true (CanDivideByPower 504 3 1))
+;(check-false (CanDivideByPower 504 3 2))
+;
 ;(define (elm x n)
-;  ;(printf "elm ~a ~a~n" x n)
-;  (let ((np (prime n x)))
-;    (let loop ((k 1) (x x))
-;      (cond ((not (CanDivide x np)) (- k 1))
-;            (else (loop (+ k 1) (/ x np)))))))
+;  (Min k ≦ x (and (CanDivideByPower x n k)
+;                  (not (CanDivideByPower x n (+ k 1))))))
 
 ; 素因数分解を利用する版
 ; nが範囲外だったり、xが0や1でもうまくいくようにfactor*が吸収してくれる
@@ -319,18 +288,10 @@
 
 ; 定義7 列の長さ
 
+; 元のソース
 ;(define (len x)
 ;  (Min k ≦ x (and (> (prime k x) 0)
 ;                  (= (prime (+ k 1) x) 0))))
-
-; 高速化版
-;(define (len x)
-;  ;(printf "len ~a~n" x)
-;  (if (or (= x 0) (= x 1))
-;      0
-;      (let loop ((k 1))
-;        (cond ((= (prime k x) 0) (- k 1))
-;              (else (loop (+ k 1)))))))
 
 ; 素因数分解を利用する版
 ; xが0や1でもうまくいくようにfactor*が吸収してくれる
@@ -357,7 +318,7 @@
 ;               (⇒ (<= 1 n) (= (elm z (+ (len x) n)) (elm y n)))))))
 
 (define (** x y)
-  (printf "** ~a ~a~n" x y)
+  ;(printf "** ~a ~a~n" x y)
   (let ((lenx (len x)))
     (let loop ((k 1) (n x))
       (let ((yk (elm y k)))
@@ -449,14 +410,7 @@
 
 ; 定義18 "第1型の記号である"
 
-; 変数がふたつある こんな風に展開されてほしい
-;(define (IsNumberType x)
-;  (∃≦ x (λ (m)
-;          (∃≦ x (λ (n)
-;                  (and (or (= m c0) (IsVarType m 1))
-;                       (= x (succ n (<> m)))))))))
-
-
+; 元のソース
 ;(define (IsNumberType x)
 ;  (∃ m n ≦ x 
 ;     (begin
@@ -489,20 +443,10 @@
 ;  (or (and (= n 1) (IsNumberType x))
 ;      (and (> n 1) (∃ v ≦ x (and (IsVarType v n) (= x (<> v)))))))
 
-;(define (IsNthType x n)
-;  (cond ((= n 1) (IsNumberType x))
-;        (else
-;         (let ((e (elm x 1)))
-;           (let loop ((k 7))
-;             (let ((v (expt (P k) n)))
-;               ;(printf "IsNumberType ~a ~a ~a ~a~n" x n k v)
-;               (cond ((> v e) #f)
-;                     ((= v e) #t)
-;                     (else (loop (+ k 1))))))))))
-
 (define (type x)
   (factor-expt (car (factorization x))))
 
+; 素因数分解を使う版
 (define (IsNthType x n)
   (cond ((= n 1) (IsNumberType x))
         ((not (= (len x) 1)) #f)

@@ -77,3 +77,40 @@
   (factor-length (factorization x)))
 ```
 
+しかしこれでは実は速くなってないはず
+`**`の中で`elm`を連続して呼ぶような場合、毎回素因数分解してるので
+素因数分解の結果を覚えておくようにします
+
+やりかたは`P`のときと同じ
+
+```
+(define factorizations (make-hash))
+(hash-set! factorizations 0 '((0 . 0)))
+(hash-set! factorizations 1 '((0 . 0)))
+
+(define (factorization x)
+  (cond ((hash-ref factorizations x #f))
+        (else
+         (let loop ((n 1) (x1 x) (f '()))
+           (if (= x1 1)
+               (let ((f (reverse f)))
+                 (hash-set! factorizations x f)
+                 f)
+               (let*-values (((pn) (P n))
+                             ((x1 k) (times-divide x1 pn)))
+                 (loop (+ n 1)
+                       x1
+                       (if (= k 0)
+                           f
+                           (cons (cons pn k) f)))))))))
+```
+
+これで速くなったかもしれません
+でもわかりません
+計ってないから！
+
+あと全部覚えておくのではいつかメモリが足りなくなりますね
+まあそのときはそのときで
+
+`factorization`と`P`で同じようなことを書いてますがマクロで書けるでしょうか
+
