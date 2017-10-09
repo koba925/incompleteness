@@ -443,8 +443,6 @@
 ;  (or (and (= n 1) (IsNumberType x))
 ;      (and (> n 1) (∃ v ≦ x (and (IsVarType v n) (= x (<> v)))))))
 
-(define (type x)
-  (factor-expt (car (factorization x))))
 
 ; 素因数分解を使う版
 (define (IsNthType x n)
@@ -471,5 +469,49 @@
 
 ; 定義20 xは"基本論理式"である
 
+;元のソース
+;(define (IsElementForm x)
+;  (∃ a b n ≦ x
+;     (and (IsNthType a (+ n 1))
+;          (IsNthType b n)
+;          (= x (** a (paren b))))))
+
+; 変数の型 (xは列ではなく記号)
+(define (VarType x)
+  (factor-expt (car (factorization x))))
+
+(check-eq? (VarType (var 1 1)) 1)
+(check-eq? (VarType (var 1 2)) 2)
+(check-eq? (VarType (var 1 3)) 3)
+(check-eq? (VarType (var 2 1)) 1)
+(check-eq? (VarType (var 2 2)) 2)
+(check-eq? (VarType (var 2 3)) 3)
+
+; 列の取り出す
+
+(define (ExtractSequence x s e)
+  (let ((f (factorization x)))
+    (apply gnum (map factor-expt (drop (take f e) (- s 1))))))
+
 (define (IsElementForm x)
-  #f)
+  (let ((l (len x)))
+    (and (>= l 4)
+         (let* ((a (elm x 1))
+                (b (ExtractSequence x 3 (- (len x) 1)))
+                (n (VarType a)))
+           (and (IsVar a)
+                (= (elm x 2) clp)
+                (IsNthType b (- n 1))
+                (= (elm x (len x)) crp))))))
+
+(check-true (IsElementForm (gnum (var 1 2) clp (var 1 1) crp)))
+(check-true (IsElementForm (gnum (var 1 2) clp cf (var 1 1) crp)))
+(check-true (IsElementForm (gnum (var 1 2) clp cf cf (var 1 1) crp)))
+
+(check-false (IsElementForm (gnum (var 1 2) clp crp)))
+(check-false (IsElementForm (gnum c0 clp (var 1 1) crp)))
+(check-false (IsElementForm (gnum (var 1 2) crp (var 1 1) crp)))
+(check-false (IsElementForm (gnum (var 1 2) crp (var 1 2) crp)))
+(check-false (IsElementForm (gnum (var 1 2) crp (var 1 2) clp)))
+
+
