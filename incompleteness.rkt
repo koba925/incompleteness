@@ -487,7 +487,7 @@
 (check-eq? (VarType (var 2 2)) 2)
 (check-eq? (VarType (var 2 3)) 3)
 
-; 列の取り出す
+; 列の一部を取り出す
 
 (define (ExtractSequence x s e)
   (let ((f (factorization x)))
@@ -514,4 +514,46 @@
 (check-false (IsElementForm (gnum (var 1 2) crp (var 1 2) crp)))
 (check-false (IsElementForm (gnum (var 1 2) crp (var 1 2) clp)))
 
+; 定義21 "¬(a)"または"(a)∨(b)"または"∀v(a)"である
 
+(define (IsNotOp x a) (= x (Not a)))
+
+(check-true (IsNotOp (gnum cnot clp (var 1 2) clp cf cf (var 1 1) crp crp)
+                     (gnum (var 1 2) clp cf cf (var 1 1) crp)))
+(check-false (IsNotOp (gnum c0 clp (var 1 2) clp cf cf (var 1 1) crp crp)
+                      (gnum (var 1 2) clp cf cf (var 1 1) crp)))
+
+(define (IsOrOp x a b) (= x (Or a b)))
+
+(check-true (IsOrOp (gnum clp (var 1 2) clp cf cf (var 1 1) crp crp cor clp (var 2 2) clp cf cf (var 2 1) crp crp)
+                    (gnum (var 1 2) clp cf cf (var 1 1) crp)
+                    (gnum (var 2 2) clp cf cf (var 2 1) crp)))
+(check-false (IsOrOp (gnum clp (var 1 2) clp cf cf (var 1 1) crp crp call clp (var 2 2) clp cf cf (var 2 1) crp crp)
+                     (gnum (var 1 2) clp cf cf (var 1 1) crp)
+                     (gnum (var 2 2) clp cf cf (var 2 1) crp)))
+
+(define (IsForallOp x a)
+  (∃ v ≦ x (and (IsVar v) (= x (ForAll v a)))))
+
+(check-true (IsForallOp (gnum call (var 1 1) clp (var 1 2) clp cf cf (var 1 1) crp crp)
+                        (gnum (var 1 2) clp cf cf (var 1 1) crp)))
+(check-false (IsForallOp (gnum call (var 1 1) clp (var 1 2) clp cf cf (var 1 1) crp crp)
+                         (gnum (var 1 1) clp cf cf (var 1 1) crp)))
+
+(define (IsOp x a b)
+  (or (IsNotOp x a)
+      (IsOrOp x a b)
+      (IsForallOp x a)))
+
+(check-true (IsOp (gnum cnot clp (var 1 2) clp cf cf (var 1 1) crp crp)
+                  (gnum (var 1 2) clp cf cf (var 1 1) crp)
+                  (gnum (var 1 2) clp cf cf (var 1 1) crp)))
+(check-true (IsOp (gnum clp (var 1 2) clp cf cf (var 1 1) crp crp cor clp (var 2 2) clp cf cf (var 2 1) crp crp)
+                  (gnum (var 1 2) clp cf cf (var 1 1) crp)
+                  (gnum (var 2 2) clp cf cf (var 2 1) crp)))
+(check-true (IsOp (gnum call (var 1 1) clp (var 1 2) clp cf cf (var 1 1) crp crp)
+                  (gnum (var 1 2) clp cf cf (var 1 1) crp)
+                  (gnum (var 1 2) clp cf cf (var 1 1) crp)))
+(check-false (IsOp (gnum clp (var 1 2) clp cf cf (var 1 1) crp crp call clp (var 2 2) clp cf cf (var 2 1) crp crp)
+                   (gnum (var 1 2) clp cf cf (var 1 1) crp)
+                   (gnum (var 2 2) clp cf cf (var 2 1) crp)))
