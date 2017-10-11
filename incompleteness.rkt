@@ -532,8 +532,14 @@
                      (gnum (var 1 2) clp cf cf (var 1 1) crp)
                      (gnum (var 2 2) clp cf cf (var 2 1) crp)))
 
+;元のソース
+;(define (IsForallOp x a)
+;  (∃ v ≦ x (and (IsVar v) (= x (ForAll v a)))))
+
 (define (IsForallOp x a)
-  (∃ v ≦ x (and (IsVar v) (= x (ForAll v a)))))
+  (let ((v (elm x 2)))
+    (and (IsVar v)
+         (= x (ForAll v a)))))
 
 (check-true (IsForallOp (gnum call (var 1 1) clp (var 1 2) clp cf cf (var 1 1) crp crp)
                         (gnum (var 1 2) clp cf cf (var 1 1) crp)))

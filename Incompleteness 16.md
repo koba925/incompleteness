@@ -2,6 +2,10 @@
 
 ## 「10.8.4 変数・記号・論理式」の続き
 
+定義21 "¬(a)"または"(a)∨(b)"または"∀v(a)"である
+
+とりあえずそのまま
+
 ```
 (define (IsNotOp x a) (= x (Not a)))
 
@@ -15,3 +19,14 @@
       (IsOrOp x a b)
       (IsForallOp x a)))
 ```
+
+案の定`IsForallOp`が（#fになるときに）遅いので書き直し
+
+```
+(define (IsForallOp x a)
+  (let ((v (elm x 2)))
+    (and (IsVar v)
+         (= x (ForAll v a)))))
+```
+
+今日はこれだけ！
