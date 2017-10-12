@@ -563,3 +563,19 @@
 (check-false (IsOp (gnum clp (var 1 2) clp cf cf (var 1 1) crp crp call clp (var 2 2) clp cf cf (var 2 1) crp crp)
                    (gnum (var 1 2) clp cf cf (var 1 1) crp)
                    (gnum (var 2 2) clp cf cf (var 2 1) crp)))
+
+; 定義22 "基本論理式"から組み上げた"論理式"の列である
+
+(define (IsFormSeq x)
+  (and (> (len x) 0)
+       (∀ n ≦ (len x)
+          (⇒ (> n 0)
+             (or (IsElementForm (elm x n))
+                 (∃ p q ≦ (- n 1)
+                    (and (> p 0) (> q 0)
+                         (IsOp (elm x n) (elm x p) (elm x q)))))))))
+
+;
+;(check-false (IsFormSeq (gnum (gnum c0))))
+;(check-true (IsFormSeq (gnum (gnum (var 1 2) clp c0 crp))))
+;(check- (IsFormSeq (gnum )))
