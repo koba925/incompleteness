@@ -11,7 +11,10 @@
 ; とりあえず定義されていれば値はなんでもいい模様
 ; よくわかってない
 
+; "＜"も全角
+; 半角の<だと他の式で使われてるとやな感じなので
 (define ≦ #f)
+(define ＜ #f)
 
 (define-syntax (define-equipment stx)
   (syntax-parse stx
@@ -25,11 +28,15 @@
                    (else (loop (+ x 1))))))
          (define-syntax (name stx)
            (syntax-parse stx
-             #:literals (≦)
+             #:literals (≦ ＜)
              [(_ v:id ≦ max:expr body:expr)
               #'(fname max (λ (v) body))]
              [(_ v:id ...+ vn:id ≦ max:expr body:expr)
-              #'(name v (... ...) ≦ max (fname max (λ (vn) body)))]))))))
+              #'(name v (... ...) ≦ max (fname max (λ (vn) body)))]
+             [(_ v:id ＜ max:expr body:expr)
+              #'(fname (- max 1) (λ (v) body))]
+             [(_ v:id ...+ vn:id ＜ max:expr body:expr)
+              #'(name v (... ...) ＜ max (fname (- max 1) (λ (vn) body)))]))))))
 
 (define-equipment ∀ not (const #t) (const #f))
 (define-equipment ∃ identity (const #f) (const #t))
@@ -41,6 +48,13 @@
 (check-false (∃ x ≦ 3 (= x 4)))
 (check-eq? (Min x ≦ 3 (= x 2)) 2)
 (check-eq? (Min x ≦ 3 (= x 4)) 0)
+
+(check-true (∀ x ＜ 3 (< x 3)))
+(check-false (∀ x ＜ 3 (< x 2)))
+(check-true (∃ x ＜ 3 (= x 2)))
+(check-false (∃ x ＜ 3 (= x 3)))
+(check-eq? (Min x ＜ 3 (= x 2)) 2)
+(check-eq? (Min x ＜ 3 (= x 3)) 0)
 
 ; ⇒の定義
 ; これは関数だと余分な評価が走るのでマクロで
@@ -571,11 +585,9 @@
        (∀ n ≦ (len x)
           (⇒ (> n 0)
              (or (IsElementForm (elm x n))
-                 (∃ p q ≦ (- n 1)
+                 (∃ p q ＜ n
                     (and (> p 0) (> q 0)
                          (IsOp (elm x n) (elm x p) (elm x q)))))))))
 
-;
-;(check-false (IsFormSeq (gnum (gnum c0))))
+(check-false (IsFormSeq (gnum (gnum c0))))
 ;(check-true (IsFormSeq (gnum (gnum (var 1 2) clp c0 crp))))
-;(check- (IsFormSeq (gnum )))
