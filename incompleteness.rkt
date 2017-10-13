@@ -591,3 +591,16 @@
 
 (check-false (IsFormSeq (gnum (gnum c0))))
 ;(check-true (IsFormSeq (gnum (gnum (var 1 2) clp c0 crp))))
+
+; 定義23 xは論理式である
+
+(define (M23 x)
+  (expt (P (sqr (len x))) (* x (sqr (len x)))))
+
+(define (IsEndedWith n x)
+  (= (elm n (len n)) x))
+
+(define (IsForm x)
+  (∃ n ≦ (M23 x) (and (IsFormSeq n)
+                      (IsEndedWith n x))))
+
