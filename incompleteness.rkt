@@ -604,3 +604,24 @@
   (∃ n ≦ (M23 x) (and (IsFormSeq n)
                       (IsEndedWith n x))))
 
+; 定義24 "変数"vはxのn番目の場所では"束縛"されている
+
+(define (IsBoundAt v n x)
+  (and (IsVar v)
+       (IsForm x)
+       (∃ a b c ≦ x (and (= x (** (** a (ForAll v b)) c))
+                         (IsForm b)
+                         (<= (+ (len a) 1) n)
+                         (<= n (+ (len a) (len (ForAll v b))))))))
+
+; 定義25 "変数"vはxのn番目の場所では"束縛"されてない
+
+(define (IsFreeAt v n x)
+  (and (IsVar v)
+       (IsForm x)
+       (= v (elm x n))
+       (<= n (len x))
+       (not (IsBoundAt v n x))))
+
+; 定義26 vはxの"自由変数"である
+
