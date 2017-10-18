@@ -321,8 +321,8 @@
 ; 定義8 列の連結
 
 ; 元のソース
-;(define (M8 x y)
-;  (expt (P (+ (len x) (len y))) (+ x y)))
+(define (M8 x y)
+  (expt (P (+ (len x) (len y))) (+ x y)))
 ;
 ;(define (** x y)
 ;  (Min z ≦ (M8 x y)
@@ -625,3 +625,14 @@
 
 ; 定義26 vはxの"自由変数"である
 
+(define (IsFree v x)
+  (∃ n ≦ (len x) (IsFreeAt v n x)))
+
+;定義27 xのn番目の要素をcで置き換えたもの
+
+(define (substAtWith x n c)
+  (Min z ≦ (M8 x c)
+       (∃ a b ≦ x
+          (and (= n (+ (len a) 1))
+               (= x (** (** a (<> (elm x n))) b))
+               (= z (** (** a c) b))))))
