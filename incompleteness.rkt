@@ -590,6 +590,7 @@
                          (IsOp (elm x n) (elm x p) (elm x q)))))))))
 
 (check-false (IsFormSeq (gnum (gnum c0))))
+; 列の列は無理
 ;(check-true (IsFormSeq (gnum (gnum (var 1 2) clp c0 crp))))
 
 ; 定義23 xは論理式である
@@ -597,12 +598,25 @@
 (define (M23 x)
   (expt (P (sqr (len x))) (* x (sqr (len x)))))
 
+;実行できるわけがない ゲーデル数の計算すらできまい
+;(M23 (gnum (gnum (var 1 2) clp c0 crp)
+;           (gnum cnot clp (var 1 2) clp c0 crp crp)))
+;正しい論理式の列ではないが背に腹は変えられない
+(check-equal? (M23 6) (expt 7 24))
+
 (define (IsEndedWith n x)
   (= (elm n (len n)) x))
+
+;正しい論理式の列ではない
+(check-true (IsEndedWith (gnum (gnum cf c0) (gnum c0)) (gnum c0)))
+(check-false (IsEndedWith (gnum (gnum cf c0) (gnum c0)) (gnum cf)))
 
 (define (IsForm x)
   (∃ n ≦ (M23 x) (and (IsFormSeq n)
                       (IsEndedWith n x))))
+
+;(IsForm (gnum (gnum (var 1 2) clp c0 crp)
+;              (gnum cnot clp (var 1 2) clp c0 crp crp)))
 
 ; 定義24 "変数"vはxのn番目の場所では"束縛"されている
 
@@ -613,6 +627,7 @@
                          (IsForm b)
                          (<= (+ (len a) 1) n)
                          (<= n (+ (len a) (len (ForAll v b))))))))
+
 
 ; 定義25 "変数"vはxのn番目の場所では"束縛"されてない
 
@@ -628,7 +643,7 @@
 (define (IsFree v x)
   (∃ n ≦ (len x) (IsFreeAt v n x)))
 
-;定義27 xのn番目の要素をcで置き換えたもの
+; 定義27 xのn番目の要素をcで置き換えたもの
 
 (define (substAtWith x n c)
   (Min z ≦ (M8 x c)
@@ -636,3 +651,34 @@
           (and (= n (+ (len a) 1))
                (= x (** (** a (<> (elm x n))) b))
                (= z (** (** a c) b))))))
+
+; 定義28 xでk+1番目の"自由"であるvの場所
+; ただし、k+1番目というのは列の末尾から逆向きに数える
+
+(define (freepos k v x)
+  (cond ((= k 0)
+         (Min n ≦ (len x)
+              (and (IsFreeAt v n x)
+                   (not (∃ p ≦ (len x)
+                           (and (< n p)
+                                (IsFreeAt v p x)))))))
+        (else
+         (Min n ＜ (freepos (- k 1) v x)
+              (and (IsFreeAt v n x)
+                   (not (∃ p ＜ (freepos (- k 1) v x)
+                           (and (< n p)
+                                (IsFreeAt v p x)))))))))
+
+; 定義29 xで、vが"自由"である場所の総数
+
+(define (freenum v x)
+  (Min n ≦ (len x) (= (freepos n v x) 0)))
+
+; 定義30 xの"自由"であるvの場所のうち、k個をcで置き換えた論理式
+
+(define (substSome k x v c)
+  (cond ((= k 0) x)
+        (else
+         (substAtWith (substSome (- k 1) x v c)
+                      (freepos (- k 1) v x)
+                      c))))
