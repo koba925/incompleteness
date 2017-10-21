@@ -628,6 +628,8 @@
                          (<= (+ (len a) 1) n)
                          (<= n (+ (len a) (len (ForAll v b))))))))
 
+;(check-false (IsBoundAt (var 1 1) 1 (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)))
+;(check-true (IsBoundAt (var 1 1) 6 (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)))
 
 ; 定義25 "変数"vはxのn番目の場所では"束縛"されてない
 
@@ -638,10 +640,16 @@
        (<= n (len x))
        (not (IsBoundAt v n x))))
 
+;(check-true (IsFreeAt (var 1 1) 1 (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)))
+;(check-false (IsFreeAt (var 1 1) 6 (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)))
+
 ; 定義26 vはxの"自由変数"である
 
 (define (IsFree v x)
   (∃ n ≦ (len x) (IsFreeAt v n x)))
+
+;(check-true (IsFree (var 1 1) (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)))
+;(check-false (IsFree (var 2 1) (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)))
 
 ; 定義27 xのn番目の要素をcで置き換えたもの
 
@@ -651,6 +659,11 @@
           (and (= n (+ (len a) 1))
                (= x (** (** a (<> (elm x n))) b))
                (= z (** (** a c) b))))))
+
+;(check-equal? (substAtWith (gnum call (var 1 1) clp (var 1 2) clp (var 1 1) crp crp)
+;                           6
+;                           (gnum cf c0))
+;              (gnum call (var 1 1) clp (var 1 2) clp cf c0 crp crp))
 
 ; 定義28 xでk+1番目の"自由"であるvの場所
 ; ただし、k+1番目というのは列の末尾から逆向きに数える
@@ -682,3 +695,31 @@
          (substAtWith (substSome (- k 1) x v c)
                       (freepos (- k 1) v x)
                       c))))
+
+; 定義31 aの"自由"であるvをすべてcで置換した"論理式"
+
+(define (subst a v c)
+  (substSome (freenum v a) a v c))
+
+; 定義32 "(a)→(b)"、"(a)∧(b)"、"(a)⇄(b)"、"∃x(a)"を得る関数
+
+(define (Implies a b)
+  (Or (Not a) b))
+(define (And a b)
+  (Not (Or (Not a) (Not b))))
+(define (Equiv a b)
+  (And (Implies a b) (Implies b a)))
+(define (Exists x a)
+  (Not (ForAll x (Not a))))
+
+; 定義33 xを、nだけ"型持ち上げ"したもの
+
+(define (typelift n x)
+  (Min y ≦ (expt x (expt x n))
+       (∀ k ≦ (len x)
+          (or (and (not (IsVar (elm x k)))
+                   (= (elm y k) (elm x k)))
+              (and (IsVar (elm x k))
+                   (= (elm y k)
+                      (* (elm x k)
+                         (expt (prime 1 (elm x k)) n))))))))
