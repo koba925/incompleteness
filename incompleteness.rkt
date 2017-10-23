@@ -723,3 +723,39 @@
                    (= (elm y k)
                       (* (elm x k)
                          (expt (prime 1 (elm x k)) n))))))))
+
+; 10.8.5 公理・定理・形式的証明
+
+; 定義34 xは公理Iから得られる"論理式"である
+
+; ペアノの公理ね
+
+; まずは等号の定義
+; ∀u(u(x1)→u(y1))
+; x1、y1は任意の変数、ただし第1型に限るということでいいのかな？
+; uは第2型の任意の変数？なにか決める必要があるのでz2に（なんか嫌な感じだけど
+
+(define (ElementForm a b)
+  (** a (paren b)))
+
+(define (Equal x y)
+  (ForAll (var 3 2) (Implies (ElementForm (var 3 2) x)
+                             (ElementForm (var 3 2) y))))
+
+; 公理 I-1
+
+(define AxiomI-1
+  (Not (Equal (succ 1 (var 1 1)) (￣ 0))))
+
+(define AxiomI-2
+  (Implies (Equal (succ 1 (var 1 1))
+                  (succ 1 (var 2 1)))
+           (Equal (var 1 1)
+                  (var 2 1))))
+
+(define AxiomI-3
+  (Implies (And (ElementForm (var 1 2) (￣ 0))
+                (ForAll (var 1 1)
+                        (Implies (ElementForm (var 1 2) (var 1 1))
+                                 (ElementForm (var 1 2) (succ 1 (var 1 1))))))
+           (ForAll (var 1 1) (ElementForm (var 1 2) (var 1 1)))))
