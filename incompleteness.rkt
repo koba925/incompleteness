@@ -742,8 +742,6 @@
   (ForAll (var 3 2) (Implies (ElementForm (var 3 2) x)
                              (ElementForm (var 3 2) y))))
 
-; 公理 I-1
-
 (define AxiomI-1
   (Not (Equal (succ 1 (var 1 1)) (￣ 0))))
 
@@ -759,3 +757,33 @@
                         (Implies (ElementForm (var 1 2) (var 1 1))
                                  (ElementForm (var 1 2) (succ 1 (var 1 1))))))
            (ForAll (var 1 1) (ElementForm (var 1 2) (var 1 1)))))
+
+(define (IsAxiomI x)
+  (or (= x AxiomI-1)
+      (= x AxiomI-2)
+      (= x AxiomI-3)))
+
+; 定義35 xは公理II-nから得られる"論理式"である
+
+(define (IsSchemaII n x)
+  (case n
+    ((1) (∃ p ≦ x (and (IsForm p)
+                       (= x (Implies (Or p p) p)))))
+    ((2) (∃ p q ≦ x (and (IsForm p)
+                         (IsForm q)
+                         (= x (Implies p (Or p q))))))
+    ((3) (∃ p q ≦ x (and (IsForm p)
+                         (IsForm q)
+                         (= x (Implies (Or p q) (Or q p))))))
+    ((4) (∃ p q r ≦ x (and (IsForm p)
+                           (IsForm q)
+                           (IsForm r)
+                           (= x (Implies (Implies p q) (Implies (Or r p) (Or r q)))))))))
+
+; 定義36 xは公理IIから得られる"論理式"である
+
+(define (IsAxiomII x)
+  (or (IsSchema 1 x)
+      (IsSchema 2 x)
+      (IsSchema 3 x)
+      (IsSchema 4 x)))
