@@ -736,7 +736,7 @@
 ; uは第2型の任意の変数？なにか決める必要があるのでz2に（なんか嫌な感じだけど
 
 (define (ElementForm a b)
-  (** a (paren b)))
+  (** (<> a) (paren b)))
 
 (define (Equal x y)
   (ForAll (var 3 2) (Implies (ElementForm (var 3 2) x)
@@ -748,15 +748,15 @@
 (define AxiomI-2
   (Implies (Equal (succ 1 (var 1 1))
                   (succ 1 (var 2 1)))
-           (Equal (var 1 1)
-                  (var 2 1))))
+           (Equal (<> (var 1 1))
+                  (<> (var 2 1)))))
 
 (define AxiomI-3
   (Implies (And (ElementForm (var 1 2) (￣ 0))
                 (ForAll (var 1 1)
-                        (Implies (ElementForm (var 1 2) (var 1 1))
+                        (Implies (ElementForm (var 1 2) (<> (var 1 1)))
                                  (ElementForm (var 1 2) (succ 1 (var 1 1))))))
-           (ForAll (var 1 1) (ElementForm (var 1 2) (var 1 1)))))
+           (ForAll (var 1 1) (ElementForm (var 1 2) (<> (var 1 1))))))
 
 (define (IsAxiomI x)
   (or (= x AxiomI-1)
@@ -835,4 +835,3 @@
              (Exists u (Forall v (Equiv (** (<> u)
                                             (paren (<> v)))
                                           y)))))))
-
