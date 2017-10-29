@@ -50,9 +50,33 @@
 定義41 xは公理Vから得られる"論理式"である
 
 ```
+(define AxiomV
+  (Implies (ForAll (var 1 1)
+                   (Equiv (ElementForm (var 1 2) (<> (var 1 1)))
+                          (ElementForm (var 2 2) (<> (var 1 1)))))
+           (Equal (<> (var 1 2)) (<> (var 2 2)))))
+
+(define (IsAxiomV x)
+  (∃ n ≦ x (= x (typelift n AxiomV))))
 
 ```
 
+これまた変数がx1,x2,y2が固定になってる公理なんですがいいんでしょうかこれで
+`typelift`が用意されてるんだから`varshift`みたいなのがあってもいいのにね
+ってあればあったで上限が示せなくなるかもしれない気もしたけど
+いや大丈夫かな
+変数が`x`より大きくなることはないから
 
+定義42 xは"公理"である
 
+```
+(define (IsAxiom x)
+  (or (IsAxiomI x)
+      (IsAxiomII x)
+      (IsAxiomIII x)
+      (IsAxiomIV x)
+      (IsAxiomV x)))
+```
 
+これで公理も終わり
+いよいよ証明に入ります

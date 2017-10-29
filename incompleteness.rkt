@@ -36,7 +36,11 @@
              [(_ v:id ＜ max:expr body:expr)
               #'(fname (- max 1) (λ (v) body))]
              [(_ v:id ...+ vn:id ＜ max:expr body:expr)
-              #'(name v (... ...) ＜ max (fname (- max 1) (λ (vn) body)))]))))))
+              #'(name v (... ...) ＜ max (fname (- max 1) (λ (vn) body)))]
+             [(_ v:id body:expr)
+              #'(fname +inf.0 (λ (v) body))]
+             [(_ v:id ...+ vn:id body:expr)
+              #'(name v (... ...) (fname +inf.0 (λ (vn) body)))]))))))
 
 (define-equipment ∀ not (const #t) (const #f))
 (define-equipment ∃ identity (const #f) (const #t))
@@ -44,6 +48,7 @@
 
 (check-true (∀ x ≦ 3 (< x 4)))
 (check-false (∀ x ≦ 3 (< x 3)))
+(check-false (∀ x (< x 3)))
 (check-true (∃ x ≦ 3 (= x 2)))
 (check-false (∃ x ≦ 3 (= x 4)))
 (check-eq? (Min x ≦ 3 (= x 2)) 2)
@@ -832,6 +837,61 @@
           (not (IsFree u y))
           (IsForm y)
           (= x
-             (Exists u (Forall v (Equiv (** (<> u)
+             (Exists u (ForAll v (Equiv (** (<> u)
                                             (paren (<> v)))
                                           y)))))))
+
+; 定義41 xは公理Vから得られる"論理式"である
+
+(define AxiomV
+  (Implies (ForAll (var 1 1)
+                   (Equiv (ElementForm (var 1 2) (<> (var 1 1)))
+                          (ElementForm (var 2 2) (<> (var 1 1)))))
+           (Equal (<> (var 1 2)) (<> (var 2 2)))))
+
+(define (IsAxiomV x)
+  (∃ n ≦ x (= x (typelift n AxiomV))))
+
+; 定義42 xは"公理"である
+
+(define (IsAxiom x)
+  (or (IsAxiomI x)
+      (IsAxiomII x)
+      (IsAxiomIII x)
+      (IsAxiomIV x)
+      (IsAxiomV x)))
+
+; 定義43 xはaとbの"直接の帰結"である
+
+(define (IsConseq x a b)
+  (or (= a (implies b x))
+      (∃ v ≦ x (and (IsVar v) (= x (ForAll v a))))))
+
+; 定義44 xは"形式的証明"である
+
+(define (IsAxiomAt x n)
+  (IsAxiom (elm x n)))
+
+(define (ConseqAt x n)
+  (∃ p q ＜ n
+     (and (> p 0)
+          (> q 0)
+          (IsConseq (elm x n) (elm x p) (elm x q)))))
+
+(define (IsProof x)
+  (and (> (len x) 0)
+       (∀ n ≦ (len x)
+          (⇒ (> n 0)
+             (or (IsAxiomAt x n)
+                 (ConseqAt x n))))))
+
+; 定義45 pはxの"形式的証明"である
+
+(define (Proves p x)
+  (and (IsProof p)
+       (IsEndedWith p x)))
+
+; 定義46 xには、"形式的証明"が存在する
+
+(define (IsProvable x)
+  (∃ p (Proves p x)))
