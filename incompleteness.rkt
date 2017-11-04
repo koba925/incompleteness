@@ -864,7 +864,7 @@
 ; 定義43 xはaとbの"直接の帰結"である
 
 (define (IsConseq x a b)
-  (or (= a (implies b x))
+  (or (= a (Implies b x))
       (∃ v ≦ x (and (IsVar v) (= x (ForAll v a))))))
 
 ; 定義44 xは"形式的証明"である
