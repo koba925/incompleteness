@@ -1,6 +1,6 @@
-#lang racket
+#lang typed/racket
 
-(require rackunit)
+(require typed/rackunit)
 (require profile)
 (require (for-syntax syntax/parse))
 (require (for-syntax racket/syntax))
