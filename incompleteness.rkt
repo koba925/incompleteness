@@ -21,6 +21,7 @@
     ((_ name term notfound found)
      #:with fname (format-id stx "~a≦" #'name)
      #'(begin
+         (: fname (-> Natural (-> Any Any) Any))
          (define (fname max f)
            (let loop ((x 0))
              (cond ((> x max) (notfound x))
